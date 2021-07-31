@@ -71,7 +71,7 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
     path = File.join(tmpdir, filename)
     output = get_output(['identify', path])
     puts
-    STDOUT << output.sub(%r,\A([^\s]/)+,, '')
+    STDOUT << output.sub(%r,\A/([^\s/]+/)*,, '')
 
     if options[:resolution] && options[:letter]
       expected_w = (options[:resolution] * 8.5).to_i
