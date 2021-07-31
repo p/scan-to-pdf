@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -ex
+
+DEVICE='brother4:bus6;dev1'
+DPI=300
+
+rm -rf work
+mkdir work
+
+# scanadf crashes on my system
+# --mode argument is last
+scanadf -d "$DEVICE" \
+  --resolution $DPI \
+  -x 215 -y 279.4 \
+  -o work/image-%04d.pnm \
+  --mode 'true gray' || true
+
+identify work/image-0001.pnm
+
+echo Expected resolution: $(printf %d `echo '8.5 * '$DPI |bc`)x`echo '11 * '$DPI |bc`
+
+for img in work/image-*.pnm; do
+  base=`echo $img |sed -e s/.pnm//`
+  
+  # Without unpaper
+  tesseract --dpi $DPI "$base".pnm "$base" pdf
+  
+  # With unpaper
+  unpaper -l none --dpi $DPI "$img" "$base"-p.pnm
+  tesseract --dpi $DPI "$base"-p.pnm "$base"-p pdf
+done
+
+pdfunite work/image-????.pdf work/raw.pdf
+pdfunite work/image-????-p.pdf work/unpaper.pdf
