@@ -8,9 +8,10 @@ DEVICE='brother4:bus6;dev1'
 DPI=300
 
 dest="$1"
+shift
 
 if test -z "$dest"; then
-  echo "Usage: scan-remote destination"  1>&2
+  echo "Usage: scan-remote destination [scan.rb options]"  1>&2
   exit 1
 fi
 
@@ -20,7 +21,7 @@ if ! echo "$dest" |egrep -q '\.pdf$'; then
 fi
 
 tempdir=`ssh $target 'mktemp -d /tmp/scan-remote-XXXXXX'`
-ssh $target "~/apps/scan-to-pdf/scan.rb -d '$DEVICE' -r $DPI --letter -o '$tempdir/out.pdf'"
+ssh $target "~/apps/scan-to-pdf/scan.rb -d '$DEVICE' -r $DPI --letter -o '$tempdir/out.pdf' $*"
 
 scp $target:$tempdir/out.pdf $dest
 scp $target:$tempdir/out-raw.pdf `echo $dest |sed -e s/.pdf/-raw.pdf/`
