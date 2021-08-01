@@ -16,13 +16,30 @@ end
 def get_output(cmd)
   process = ChildProcess.build(*cmd)
   rd, wr = IO.pipe
-  process.io.stdout = wr
-  process.start
-  wr.close
-  process.wait
-  rd.read.tap do
+  begin
+    process.io.stdout = wr
+    process.start
+    wr.close
+
+    output = ''
+    thread = Thread.new do
+      begin
+        loop do
+          output << rd.readpartial(16384)
+        end
+      rescue EOFError
+        # Child has closed the write end of the pipe
+      end
+    end
+
+    process.wait
+    thread.join
+  ensure
+    wr.close rescue nil
     rd.close
   end
+
+  output
 end
 
 options = {}
@@ -47,6 +64,10 @@ OptionParser.new do |opts|
 
   opts.on("-o", "--output PATH", "Specify the final PDF path") do |v|
     options[:output] = v
+  end
+
+  opts.on("-e", '--rotate', "Rotate the image counterclockwise 90 degrees") do
+    options[:rotate] = true
   end
 end.parse!
 
@@ -87,11 +108,24 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
 
     puts
     unpapered_path = path.sub(/\.pnm\z/, '-u.pnm')
-    cmd = ['unpaper', '-l', 'none', '--dpi', options[:resolution].to_s, path, unpapered_path]
+    cmd = ['unpaper', '-l', 'none', '--dpi', options[:resolution].to_s]
+    if options[:rotate]
+      cmd += %w(--pre-rotate -90)
+    end
+    cmd += [path, unpapered_path]
     run(cmd)
 
+    raw_path = path
+    if options[:rotate]
+      cmd = ['pnmrotate', '90', path]
+      output = get_output(cmd)
+      raw_path = path.sub(/\.pnm\z/, '-r.pnm')
+      File.open(raw_path, 'w') do |f|
+        f << output
+      end
+    end
     puts
-    cmd = ['tesseract', '--dpi', options[:resolution].to_s, path, path.sub(/\.pnm\z/, ''), 'pdf']
+    cmd = ['tesseract', '--dpi', options[:resolution].to_s, raw_path, path.sub(/\.pnm\z/, ''), 'pdf']
     run(cmd)
 
     puts
