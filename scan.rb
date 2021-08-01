@@ -70,6 +70,14 @@ OptionParser.new do |opts|
     options[:rotate] = true
   end
 
+  opts.on('--no-black-filter', 'Skip unpaper black filter') do
+    options[:no_black_filter] = true
+  end
+
+  opts.on('--no-gray-filter', 'Skip unpaper gray filter') do
+    options[:no_gray_filter] = true
+  end
+
   opts.on('--no-noise-filter', 'Skip unpaper noise filter') do
     options[:no_noise_filter] = true
   end
@@ -115,6 +123,12 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
     cmd = ['unpaper', '-l', 'none', '--dpi', options[:resolution].to_s]
     if options[:rotate]
       cmd += %w(--pre-rotate -90)
+    end
+    if options[:no_black_filter]
+      cmd += %w(--no-blackfilter)
+    end
+    if options[:no_gray_filter]
+      cmd += %w(--no-grayfilter)
     end
     if options[:no_noise_filter]
       cmd += %w(--no-noisefilter)
