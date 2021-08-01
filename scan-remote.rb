@@ -32,6 +32,10 @@ OptionParser.new do |opts|
   opts.on("-o", "--output PATH", "Specify the final PDF path") do |v|
     options[:output] = v
   end
+
+  opts.on("-e", '--rotate', "Rotate the image counterclockwise 90 degrees") do
+    options[:rotate] = true
+  end
 end.parse!
 
 dest = options.fetch(:output)
@@ -51,6 +55,9 @@ Net::SCP.start(host, user) do |scp|
   cmd  = "~/apps/scan-to-pdf/scan.rb -d '#{options[:device]}' -r '#{options[:resolution]}' --letter -o '#{remote_dest}'"
   if options[:mode]
     cmd += " -m '#{options[:mode]}'"
+  end
+  if options[:rotate]
+    cmd += ' -e'
   end
   ssh.exec(cmd).wait
 
