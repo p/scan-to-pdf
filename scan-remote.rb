@@ -36,6 +36,10 @@ OptionParser.new do |opts|
   opts.on("-e", '--rotate', "Rotate the image counterclockwise 90 degrees") do
     options[:rotate] = true
   end
+
+  opts.on('--no-noise-filter', 'Skip unpaper noise filter') do
+    options[:no_noise_filter] = true
+  end
 end.parse!
 
 dest = options.fetch(:output)
@@ -58,6 +62,9 @@ Net::SCP.start(host, user) do |scp|
   end
   if options[:rotate]
     cmd += ' -e'
+  end
+  if options[:no_noise_filter]
+    cmd += ' --no-noise-filter'
   end
   ssh.exec(cmd).wait
 
