@@ -37,6 +37,14 @@ OptionParser.new do |opts|
     options[:rotate] = true
   end
 
+  opts.on('--no-black-filter', 'Skip unpaper black filter') do
+    options[:no_black_filter] = true
+  end
+
+  opts.on('--no-gray-filter', 'Skip unpaper gray filter') do
+    options[:no_gray_filter] = true
+  end
+
   opts.on('--no-noise-filter', 'Skip unpaper noise filter') do
     options[:no_noise_filter] = true
   end
@@ -56,12 +64,21 @@ Net::SCP.start(host, user) do |scp|
   tmpdir = ssh.exec!('mktemp -d /tmp/scan-remote-rb-XXXXXX').strip
 
   remote_dest = "#{tmpdir}/out.pdf"
-  cmd  = "~/apps/scan-to-pdf/scan.rb -d '#{options[:device]}' -r '#{options[:resolution]}' --letter -o '#{remote_dest}'"
+  cmd  = "~/apps/scan-to-pdf/scan.rb -d '#{options[:device]}' -r '#{options[:resolution]}' -o '#{remote_dest}'"
+  if options[:letter]
+    cmd += ' --letter'
+  end
   if options[:mode]
     cmd += " -m '#{options[:mode]}'"
   end
   if options[:rotate]
     cmd += ' -e'
+  end
+  if options[:no_black_filter]
+    cmd += ' --no-black-filter'
+  end
+  if options[:no_gray_filter]
+    cmd += ' --no-gray-filter'
   end
   if options[:no_noise_filter]
     cmd += ' --no-noise-filter'
