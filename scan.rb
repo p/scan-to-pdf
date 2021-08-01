@@ -69,6 +69,10 @@ OptionParser.new do |opts|
   opts.on("-e", '--rotate', "Rotate the image counterclockwise 90 degrees") do
     options[:rotate] = true
   end
+
+  opts.on('--no-noise-filter', 'Skip unpaper noise filter') do
+    options[:no_noise_filter] = true
+  end
 end.parse!
 
 Dir.mktmpdir('scan-rb-') do |tmpdir|
@@ -111,6 +115,9 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
     cmd = ['unpaper', '-l', 'none', '--dpi', options[:resolution].to_s]
     if options[:rotate]
       cmd += %w(--pre-rotate -90)
+    end
+    if options[:no_noise_filter]
+      cmd += %w(--no-noisefilter)
     end
     cmd += [path, unpapered_path]
     run(cmd)
