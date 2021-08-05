@@ -37,7 +37,7 @@ OptionParser.new do |opts|
     options[:rotate] = true
   end
 
-  opts.on('--no-processing', 'Skip unpaper processing other than rotation') do
+  opts.on('-n', '--no-processing', 'Skip unpaper processing other than rotation') do
     options[:no_processing] = true
   end
 
