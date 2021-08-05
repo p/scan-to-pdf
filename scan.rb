@@ -129,16 +129,16 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
       cmd += %w(--pre-rotate -90)
     end
     if options[:no_processing]
-      cmd += %w(-n 1)
+      cmd += %w(-n)
     end
     if options[:no_black_filter]
-      cmd += %w(--no-blackfilter 1)
+      cmd += %w(--no-blackfilter)
     end
     if options[:no_gray_filter]
-      cmd += %w(--no-grayfilter 1)
+      cmd += %w(--no-grayfilter)
     end
     if options[:no_noise_filter]
-      cmd += %w(--no-noisefilter 1)
+      cmd += %w(--no-noisefilter)
     end
     cmd += [path, unpapered_path]
     run(cmd)
