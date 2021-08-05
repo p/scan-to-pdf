@@ -129,7 +129,7 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
       cmd += %w(--pre-rotate -90)
     end
     if options[:no_processing]
-      cmd << %w(-n 1)
+      cmd += %w(-n 1)
     end
     if options[:no_black_filter]
       cmd += %w(--no-blackfilter 1)
