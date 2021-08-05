@@ -70,6 +70,10 @@ OptionParser.new do |opts|
     options[:rotate] = true
   end
 
+  opts.on('--no-processing', 'Skip unpaper processing other than rotation') do
+    options[:no_processing] = true
+  end
+
   opts.on('--no-black-filter', 'Skip unpaper black filter') do
     options[:no_black_filter] = true
   end
@@ -123,6 +127,9 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
     cmd = ['unpaper', '-l', 'none', '--dpi', options[:resolution].to_s]
     if options[:rotate]
       cmd += %w(--pre-rotate -90)
+    end
+    if options[:no_processing]
+      cmd << '--no-processing'
     end
     if options[:no_black_filter]
       cmd += %w(--no-blackfilter)

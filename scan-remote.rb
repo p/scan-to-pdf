@@ -37,6 +37,10 @@ OptionParser.new do |opts|
     options[:rotate] = true
   end
 
+  opts.on('--no-processing', 'Skip unpaper processing other than rotation') do
+    options[:no_processing] = true
+  end
+
   opts.on('--no-black-filter', 'Skip unpaper black filter') do
     options[:no_black_filter] = true
   end
@@ -56,7 +60,12 @@ unless dest =~ /\.pdf\z/
   dest = "#{dest}.pdf"
 end
 
-user, host = options.fetch(:target).split('@')
+target = options.fetch(:target)
+if target.include?('@')
+  user, host = target.split('@')
+else
+  user, host = nil, target
+end
 
 Net::SCP.start(host, user) do |scp|
   ssh = scp.session
@@ -74,6 +83,9 @@ Net::SCP.start(host, user) do |scp|
   if options[:rotate]
     cmd += ' -e'
   end
+  if options[:no_processing]
+    cmd += ' --no-processing'
+  end
   if options[:no_black_filter]
     cmd += ' --no-black-filter'
   end
@@ -86,7 +98,10 @@ Net::SCP.start(host, user) do |scp|
   ssh.exec(cmd).wait
 
   scp.download(remote_dest, dest)
-  scp.download("#{tmpdir}/out-raw.pdf", dest.sub(/\.pdf\z/, '-raw.pdf'))
+  puts "Wrote #{dest}"
+  raw_dest = dest.sub(/\.pdf\z/, '-raw.pdf')
+  scp.download("#{tmpdir}/out-raw.pdf", raw_dest)
+  puts "Wrote #{raw_dest}"
 
   ssh.exec('rm -rf #{tmpdir}').wait
 end
