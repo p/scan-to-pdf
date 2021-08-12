@@ -85,6 +85,10 @@ OptionParser.new do |opts|
   opts.on('--no-noise-filter', 'Skip unpaper noise filter') do
     options[:no_noise_filter] = true
   end
+
+  opts.on('--raw', 'Scan to PNM only') do
+    options[:raw] = true
+  end
 end.parse!
 
 Dir.mktmpdir('scan-rb-') do |tmpdir|
