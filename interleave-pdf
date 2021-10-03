@@ -1,6 +1,16 @@
 #!/usr/bin/env ruby
 
 require 'combine_pdf'
+require 'optparse'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: interleave-pdf [-o output] files..."
+
+  opts.on("-o", "--out PATH", "Specify the path to the result file") do |v|
+    options[:out_path] = v
+  end
+end.parse!
 
 if ARGV.empty?
   files = Dir['*.pdf'].sort
@@ -24,7 +34,9 @@ front.pages.each_with_index do |f, i|
   out << b
 end
 
-if files.first =~ /-p1\.pdf\z/
+if out_fn = options[:out_path]
+  # nothing further
+elsif files.first =~ /-p1\.pdf\z/
   out_fn = files.first.sub(/-p1\.pdf\z/, '.pdf')
 else
   out_fn = 'out.pdf'
