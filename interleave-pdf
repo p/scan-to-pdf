@@ -18,6 +18,10 @@ else
   files = ARGV
 end
 
+if files.length != 2
+  raise "Need 2 paths"
+end
+
 out = CombinePDF.new
 front = CombinePDF.load(files.first)
 back = CombinePDF.load(files.last)
