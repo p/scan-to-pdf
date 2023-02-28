@@ -110,7 +110,7 @@ Dir.mktmpdir('scan-rb-') do |tmpdir|
     puts
     STDOUT << output.sub(%r,\A/([^\s/]+/)*,, '')
 
-    if options[:resolution] && options[:letter]
+    if options[:resolution] && options[:resolution] > 0 && options[:letter]
       expected_w = (options[:resolution] * 8.5).to_i
       expected_h = options[:resolution] * 11
 
