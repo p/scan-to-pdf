@@ -70,7 +70,7 @@ end
 Net::SCP.start(host, user) do |scp|
   ssh = scp.session
 
-  tmpdir = ssh.exec!('mktemp -d /tmp/scan-remote-rb-XXXXXX').strip
+  tmpdir = ssh.exec!('mkdir -p $HOME/.cache && mktemp -d $HOME/.cache/scan-remote-rb-XXXXXX').strip
 
   remote_dest = "#{tmpdir}/out.pdf"
   cmd  = "~/apps/scan-to-pdf/scan.rb -d '#{options[:device]}' -r '#{options[:resolution]}' -o '#{remote_dest}'"
