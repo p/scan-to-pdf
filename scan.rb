@@ -87,7 +87,8 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-Dir.mktmpdir('scan-rb-') do |tmpdir|
+FileUtils.mkdir_p(File.expand_path('~/.cache/scan-rb'))
+Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
   args = ['scanadf', '-o', File.join(tmpdir, 'image-%04d.pnm')]
   if options[:device]
     args += ['-d', options[:device]]
