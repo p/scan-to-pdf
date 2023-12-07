@@ -17,6 +17,10 @@ OptionParser.new do |opts|
     options[:device] = v
   end
 
+  opts.on("-i", "--image", "Scan image, omit document processing") do
+    options[:image] = true
+  end
+
   opts.on("-r", "--resolution RES", "Specify the resolution to use") do |v|
     options[:resolution] = v.to_i
   end
@@ -55,9 +59,14 @@ OptionParser.new do |opts|
 end.parse!
 
 dest = options.fetch(:output)
-unless dest =~ /\.pdf\z/
-  STDERR.puts "Adjusting #{dest} -> #{dest}.pdf"
-  dest = "#{dest}.pdf"
+if options[:image]
+  ext = 'jpg'
+else
+  ext = 'pdf'
+end
+unless dest =~ /\.#{ext}\z/
+  STDERR.puts "Adjusting #{dest} -> #{dest}.#{ext}"
+  dest = "#{dest}.#{ext}"
 end
 
 target = options.fetch(:target)
@@ -72,8 +81,17 @@ Net::SCP.start(host, user) do |scp|
 
   tmpdir = ssh.exec!('mkdir -p $HOME/.cache && mktemp -d $HOME/.cache/scan-remote-rb-XXXXXX').strip
 
-  remote_dest = "#{tmpdir}/out.pdf"
-  cmd  = "~/apps/scan-to-pdf/scan.rb -d '#{options[:device]}' -r '#{options[:resolution]}' -o '#{remote_dest}'"
+  remote_dest = "#{tmpdir}/out.#{ext}"
+  cmd  = "~/apps/scan-to-pdf/scan.rb -o '#{remote_dest}'"
+  if options[:device]
+    cmd += " -d '#{options[:device]}'"
+  end
+  if options[:resolution]
+    cmd += " -r '#{options[:resolution]}'"
+  end
+  if options[:image]
+    cmd += ' --image'
+  end
   if options[:letter]
     cmd += ' --letter'
   end
@@ -99,9 +117,11 @@ Net::SCP.start(host, user) do |scp|
 
   scp.download(remote_dest, dest)
   puts "Wrote #{dest}"
-  raw_dest = dest.sub(/\.pdf\z/, '-raw.pdf')
-  scp.download("#{tmpdir}/out-raw.pdf", raw_dest)
-  puts "Wrote #{raw_dest}"
+  unless options[:image]
+    raw_dest = dest.sub(/\.pdf\z/, '-raw.pdf')
+    scp.download("#{tmpdir}/out-raw.pdf", raw_dest)
+    puts "Wrote #{raw_dest}"
+  end
 
-  ssh.exec('rm -rf #{tmpdir}').wait
+  ssh.exec("rm -rf #{tmpdir}").wait
 end
