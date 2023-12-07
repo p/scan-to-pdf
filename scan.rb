@@ -50,6 +50,10 @@ OptionParser.new do |opts|
     options[:device] = v
   end
 
+  opts.on("-i", "--image", "Scan image, omit document processing") do
+    options[:image] = true
+  end
+
   opts.on("-r", "--resolution RES", "Specify the resolution to use") do |v|
     options[:resolution] = v.to_i
   end
@@ -105,6 +109,9 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
   run(args)
 
   children = Dir.children(tmpdir)
+  if children.length != 1 && options[:image]
+    raise "Requested to scan an image but received multiple pages!"
+  end
   children.each do |filename|
     path = File.join(tmpdir, filename)
     output = get_output(['identify', path])
@@ -153,28 +160,37 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
         f << output
       end
     end
-    puts
-    cmd = ['tesseract', '--dpi', options[:resolution].to_s, raw_path, path.sub(/\.pnm\z/, ''), 'pdf']
-    run(cmd)
 
-    puts
-    cmd = ['tesseract', '--dpi', options[:resolution].to_s, unpapered_path, unpapered_path.sub(/\.pnm\z/, ''), 'pdf']
-    run(cmd)
+    if options[:image]
+      cmd = ['convert', raw_path, path.sub(/\.pnm\z/, '.jpg')]
+    else
+      puts
+      cmd = ['tesseract', '--dpi', options[:resolution].to_s, raw_path, path.sub(/\.pnm\z/, ''), 'pdf']
+      run(cmd)
+
+      puts
+      cmd = ['tesseract', '--dpi', options[:resolution].to_s, unpapered_path, unpapered_path.sub(/\.pnm\z/, ''), 'pdf']
+      run(cmd)
+    end
   end
 
-  raw_cmd = %w(pdfunite)
-  cmd = %w(pdfunite)
-  1.upto(children.length) do |page_num|
-    raw_cmd << File.join(tmpdir, "image-#{'%04d' % page_num}.pdf")
-    cmd << File.join(tmpdir, "image-#{'%04d' % page_num}-u.pdf")
+  if options[:image]
+    FileUtils.mv(File.join(tmpdir, children.first), options[:output])
+  else
+    raw_cmd = %w(pdfunite)
+    cmd = %w(pdfunite)
+    1.upto(children.length) do |page_num|
+      raw_cmd << File.join(tmpdir, "image-#{'%04d' % page_num}.pdf")
+      cmd << File.join(tmpdir, "image-#{'%04d' % page_num}-u.pdf")
+    end
+    raw_path = options[:output].sub(/\.pdf\z/, '-raw.pdf')
+    if raw_path == options[:output]
+      raise "Output path must end in .pdf"
+    end
+    raw_cmd << raw_path
+    cmd << options[:output]
+    puts
+    run(raw_cmd)
+    run(cmd)
   end
-  raw_path = options[:output].sub(/\.pdf\z/, '-raw.pdf')
-  if raw_path == options[:output]
-    raise "Output path must end in .pdf"
-  end
-  raw_cmd << raw_path
-  cmd << options[:output]
-  puts
-  run(raw_cmd)
-  run(cmd)
 end
