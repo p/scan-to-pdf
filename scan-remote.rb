@@ -115,11 +115,11 @@ Net::SCP.start(host, user) do |scp|
   end
   ssh.exec(cmd).wait
 
-  scp.download(remote_dest, dest)
+  scp.download(remote_dest, dest).wait
   puts "Wrote #{dest}"
   unless options[:image]
     raw_dest = dest.sub(/\.pdf\z/, '-raw.pdf')
-    scp.download("#{tmpdir}/out-raw.pdf", raw_dest)
+    scp.download("#{tmpdir}/out-raw.pdf", raw_dest).wait
     puts "Wrote #{raw_dest}"
   end
 
