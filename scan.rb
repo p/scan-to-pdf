@@ -42,6 +42,16 @@ def get_output(cmd)
   output
 end
 
+def human_size(size)
+  suffixes = %w(bytes KB MB GB)
+  suffix_index = 0
+  while size > 1024
+    suffix_index += 1
+    size = size.to_f / 1024
+  end
+  '%.2f %s' % [size, suffixes[suffix_index]]
+end
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = "Usage: scan [-d device] [-r dpi]"
@@ -90,6 +100,13 @@ OptionParser.new do |opts|
     options[:no_noise_filter] = true
   end
 end.parse!
+
+case extname = File.extname(options[:output])
+when '.jpg'
+  puts "Assuming image processing: #{options[:output]}"
+  options[:image] = true
+  options[:output_image] = true
+end
 
 FileUtils.mkdir_p(File.expand_path('~/.cache/scan-rb'))
 Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
@@ -162,7 +179,10 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
     end
 
     if options[:image]
-      cmd = ['convert', raw_path, path.sub(/\.pnm\z/, '.jpg')]
+      puts "Raw file size: #{human_size(File.stat(raw_path).size)}"
+      cmd = ['convert', '-quality', '92', raw_path, output_path = options.fetch(:output)]
+      run(cmd)
+      puts "Compressed file size: #{human_size(File.stat(output_path).size)}"
     else
       puts
       cmd = ['tesseract', '--dpi', options[:resolution].to_s, raw_path, path.sub(/\.pnm\z/, ''), 'pdf']
@@ -175,7 +195,7 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
   end
 
   if options[:image]
-    FileUtils.mv(File.join(tmpdir, children.first), options[:output])
+    #FileUtils.mv(File.join(tmpdir, children.first), options[:output])
   else
     raw_cmd = %w(pdfunite)
     cmd = %w(pdfunite)
@@ -188,7 +208,7 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
       raise "Output path must end in .pdf"
     end
     raw_cmd << raw_path
-    cmd << options[:output]
+    cmd << options.fetch(:output)
     puts
     run(raw_cmd)
     run(cmd)
