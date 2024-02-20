@@ -61,6 +61,9 @@ end.parse!
 dest = options.fetch(:output)
 if options[:image]
   ext = 'jpg'
+elsif File.extname(dest) == '.jpg'
+  ext = 'jpg'
+  options[:image] = true
 else
   ext = 'pdf'
 end
@@ -113,6 +116,7 @@ Net::SCP.start(host, user) do |scp|
   if options[:no_noise_filter]
     cmd += ' --no-noise-filter'
   end
+  p cmd
   ssh.exec(cmd).wait
 
   scp.download(remote_dest, dest).wait
