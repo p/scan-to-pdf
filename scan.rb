@@ -170,7 +170,7 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
 
     raw_path = path
     if options[:rotate]
-      cmd = ['pnmrotate', '90', path]
+      cmd = ['pamflip', '-cw', path]
       output = get_output(cmd)
       raw_path = path.sub(/\.pnm\z/, '-r.pnm')
       File.open(raw_path, 'w') do |f|
