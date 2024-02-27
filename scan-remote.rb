@@ -37,7 +37,7 @@ OptionParser.new do |opts|
     options[:output] = v
   end
 
-  opts.on("-e", '--rotate', "Rotate the image counterclockwise 90 degrees") do
+  opts.on("-e", '--rotate', "Rotate the image clockwise 90 degrees") do
     options[:rotate] = true
   end
 

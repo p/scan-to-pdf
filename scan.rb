@@ -80,7 +80,7 @@ OptionParser.new do |opts|
     options[:output] = v
   end
 
-  opts.on("-e", '--rotate', "Rotate the image counterclockwise 90 degrees") do
+  opts.on("-e", '--rotate', "Rotate the image clockwise 90 degrees") do
     options[:rotate] = true
   end
 
@@ -151,7 +151,7 @@ Dir.mktmpdir('scan-rb-', File.expand_path('~/.cache/scan-rb')) do |tmpdir|
     unpapered_path = path.sub(/\.pnm\z/, '-u.pnm')
     cmd = ['unpaper', '-l', 'none', '--dpi', options[:resolution].to_s]
     if options[:rotate]
-      cmd += %w(--pre-rotate -90)
+      cmd += %w(--pre-rotate 90)
     end
     if options[:no_processing]
       cmd += %w(-n)
